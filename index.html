@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Compass</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #chatBox {
+      border: 1px solid #ccc;
+      padding: 10px; 
+      width: 100%;
+      max-width: 400px;
+      height: 400px;
+      overflow-y: scroll;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+    }
+    .message {
+      margin: 5px 0;
+      padding: 5px;
+    }
+    .user {
+      text-align: right;
+      color: blue;
+      background-color: #e0f7fa;
+    }
+    .bot {
+      text-align: left;
+      color: green;
+      background-color: #e8f5e9;
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .chat-container {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Chatbot Compass</h1>
+
+<div id="chatBox"></div>
+
+<div class="chat-container">
+  <input type="text" id="userMessage" placeholder="Digite sua mensagem" onkeydown="if(event.key === 'Enter') sendMessage()">
+  <button onclick="sendMessage()">Enviar</button>
+</div>
+
+<script>
+  async function sendMessage() {
+    const messageInput = document.getElementById('userMessage');
+    const message = messageInput.value.trim();
+
+    if (!message) return;
+
+    // Exibe a mensagem do usuário
+    addMessageToChat('Você: ' + message, 'user');
+
+    messageInput.value = ''; // Limpa o campo
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro na comunicação com o servidor.');
+      }
+
+      const data = await response.json();
+      addMessageToChat('Bot: ' + data.reply, 'bot');
+
+    } catch (error) {
+      console.error(error);
+      addMessageToChat('Erro: Não foi possível enviar a mensagem.', 'bot');
+    }
+  }
+
+  function addMessageToChat(message, sender) {
+    const chatBox = document.getElementById('chatBox');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message ' + sender;
+    msgDiv.innerText = message;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight; // Scroll automático
+  }
+</script>
+
+</body>
+</html>
